@@ -12,6 +12,8 @@ function Reservation() {
     demandes: ''
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
@@ -24,17 +26,60 @@ function Reservation() {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Données de réservation:', formData);
-    alert('Réservation envoyée avec succès!');
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+
+  try {
+    // Create URL with parameters
+    const params = new URLSearchParams({
+      nom: formData.nom,
+      telephone: formData.telephone,
+      date: formData.date,
+      heure: formData.heure,
+      invites: formData.invites,
+      demandes: formData.demandes || 'Aucune demande spéciale',
+
+      timestamp: new Date().toISOString()
+    });
+    
+    const url = `https://script.google.com/macros/s/AKfycbzsSGPp0Jt48rUKoDs8oklPA7xb9XTXSIuJwJBrIRGA6lsty855ipXmkaVWQgGEnuqR/exec?${params.toString()}`;
+
+    console.log('Sending data to:', url);
+
+    // Use fetch with no-cors
+    await fetch(url, {
+      method: 'GET',
+      mode: 'no-cors'
+    });
+
+    // Since we can't read the response with no-cors, assume success
+    console.log('Data sent successfully');
+    alert("Réservation envoyée avec succès ! Nous vous contacterons bientôt.");
+    
+    // Reset form
+    setFormData({
+      nom: '', 
+      telephone: '', 
+      date: '', 
+      heure: '', 
+      invites: '',
+      demandes: ''
+    });
+      
+  } catch (error) {
+    console.error("Erreur lors de l'envoi:", error);
+    alert("Une erreur est survenue, merci de réessayer plus tard.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <section id="reservation" className="relative py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8">
+      {/* ... rest of your JSX remains the same ... */}
+      
       <div className="max-w-4xl mx-auto">
-        
-        {/* Header Section */}
         <div className="text-center mb-12 sm:mb-16 lg:mb-20">
           <div className="inline-flex items-center px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-[#efcaad]/10 rounded-full border border-[#efcaad]/30 mb-6 sm:mb-8 backdrop-blur-sm">
             <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-[#efcaad] mr-2 sm:mr-3" />
@@ -53,15 +98,13 @@ function Reservation() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
-          
-          {/* Reservation Form */}
           <div className="lg:col-span-2">
             <div className="bg-black/40 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 border border-[#efcaad]/20">
               <h4 className="text-2xl sm:text-3xl font-bold text-[#efcaad] mb-8 text-center">Formulaire de Réservation</h4>
               
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* All your existing form fields remain the same */}
                 
-                {/* Name Input */}
                 <div className="group relative">
                   <label className="block text-[#efcaad] font-semibold mb-2 text-sm sm:text-base">Nom & Prénom</label>
                   <div className="relative">
@@ -80,7 +123,6 @@ function Reservation() {
                   </div>
                 </div>
 
-                {/* Phone Input */}
                 <div className="group relative">
                   <label className="block text-[#efcaad] font-semibold mb-2 text-sm sm:text-base">Téléphone</label>
                   <div className="relative">
@@ -100,10 +142,7 @@ function Reservation() {
                   </div>
                 </div>
 
-                {/* Date and Time Row */}
                 <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
-                  
-                  {/* Date Input */}
                   <div className="group relative">
                     <label className="block text-[#efcaad] font-semibold mb-2 text-sm sm:text-base">Date</label>
                     <div className="relative">
@@ -122,7 +161,6 @@ function Reservation() {
                     </div>
                   </div>
 
-                  {/* Time Input */}
                   <div className="group relative">
                     <label className="block text-[#efcaad] font-semibold mb-2 text-sm sm:text-base">Heure</label>
                     <div className="relative">
@@ -143,7 +181,6 @@ function Reservation() {
                   </div>
                 </div>
 
-                {/* Guests Input */}
                 <div className="group relative">
                   <label className="block text-[#efcaad] font-semibold mb-2 text-sm sm:text-base">Nombre d'invités</label>
                   <div className="relative">
@@ -167,7 +204,6 @@ function Reservation() {
                   </div>
                 </div>
                 
-                {/* Special Requests */}
                 <div className="group relative">
                   <label className="block text-[#efcaad] font-semibold mb-2 text-sm sm:text-base">Demandes spéciales (optionnel)</label>
                   <textarea
@@ -180,18 +216,18 @@ function Reservation() {
                   />
                 </div>
                 
-                {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full px-6 py-3 sm:py-4 text-lg sm:text-xl font-bold rounded-xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-r from-[#efcaad] to-[#d4a574] text-black shadow-lg hover:shadow-xl"
+                  disabled={isSubmitting}
+                  className="w-full px-6 py-3 sm:py-4 text-lg sm:text-xl font-bold rounded-xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-r from-[#efcaad] to-[#d4a574] text-black shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                  Confirmer la Réservation
+                  {isSubmitting ? 'Envoi en cours...' : 'Confirmer la Réservation'}
                 </button>
               </form>
             </div>
           </div>
 
-          {/* Restaurant Info */}
+          {/* Restaurant Info section remains the same */}
           <div className="lg:col-span-1">
             <div className="bg-black/40 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-[#efcaad]/20">
               <h4 className="text-xl sm:text-2xl font-bold text-[#efcaad] mb-6 flex items-center">
